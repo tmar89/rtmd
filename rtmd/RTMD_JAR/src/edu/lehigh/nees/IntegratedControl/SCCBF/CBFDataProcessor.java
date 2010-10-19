@@ -19,7 +19,7 @@ public class CBFDataProcessor extends JFrame implements ActionListener {
         linesToSkip = 0;       
         init();
         this.setVisible(true);        
-        this.setDefaultCloseOperation(this.EXIT_ON_CLOSE);
+        this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
     }
     
     public void init() {    	

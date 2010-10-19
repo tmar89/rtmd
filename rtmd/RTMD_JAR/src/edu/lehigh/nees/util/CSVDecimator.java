@@ -31,7 +31,8 @@ public class CSVDecimator extends JFrame implements ActionListener {
         decimate = 1;
         linesToSkip = 0;       
         init();
-        this.setVisible(true);
+        pack();
+        setVisible(true);
     }
     
     public void init() {    	

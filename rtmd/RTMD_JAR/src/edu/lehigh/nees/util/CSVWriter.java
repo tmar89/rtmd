@@ -14,14 +14,10 @@ package edu.lehigh.nees.util;
  * 
  ********************************/
 import java.io.*;
-import java.text.*;
-import java.util.Date;
-
 import javax.swing.JFileChooser;
 
 public class CSVWriter {
-    PrintStream toFile;    
-    private final static SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS");
+    PrintStream toFile;        
     
     /** Creates a new instance of csvWriter */
     public CSVWriter() {    	 	    

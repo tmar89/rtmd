@@ -277,11 +277,10 @@ public class Selector extends JFrame implements ActionListener, Runnable {
     	    			scr = new ScramNetIO();
     	    			scr.initScramnet();
     		    		// Clear the 1st memory page addresses
-    		            //for (int i = 0 ; i <= 2097151/4; i++) {    		            	    		            
-    		            //	scr.writeInt(i,0);    		            	
-    		            //
-    	    			//}
-    	    			scr.clear();    	    			
+    		            for (int i = 0 ; i <= 2097151/4; i++) {    		            	    		            
+    		            	scr.writeInt(i,0);    		            	
+    		            
+    	    			}    	    			    	    		
     	    		}
 				}    			
     		}

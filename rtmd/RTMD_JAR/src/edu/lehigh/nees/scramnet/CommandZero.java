@@ -5,14 +5,8 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
 
-import javax.swing.Timer;
-
-import java.io.File;
 import java.text.DecimalFormat;
 import edu.lehigh.nees.IntegratedControl.Ramp.ToZeroRampGenerator;
-import edu.lehigh.nees.util.DAPCSVConverter;
-import edu.lehigh.nees.util.FileHandler;
-import edu.lehigh.nees.util.xPCDataConverter;
 
 /********************************* 
  * SCRAMNet CommandZero
