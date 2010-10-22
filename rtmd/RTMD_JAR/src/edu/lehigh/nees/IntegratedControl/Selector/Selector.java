@@ -140,13 +140,13 @@ public class Selector extends JFrame implements ActionListener, Runnable {
         spyPanel.setBackground(null);
         
         // Integrated Control Configuration Button
-        iccButton = new JButton(iccIcon);
-        iccButton.setToolTipText("RTMD Integrated Control Configurator");
-        iccButton.setBorder(null);
-        iccButton.setContentAreaFilled(false);
-        iccButton.setFocusPainted(false);
-        iccButton.addActionListener(this);
-        iccFrame.setDefaultCloseOperation(JFrame.HIDE_ON_CLOSE);
+        // iccButton = new JButton(iccIcon);
+        // iccButton.setToolTipText("RTMD Integrated Control Configurator");
+        // iccButton.setBorder(null);
+        // iccButton.setContentAreaFilled(false);
+        // iccButton.setFocusPainted(false);
+        // iccButton.addActionListener(this);
+        // iccFrame.setDefaultCloseOperation(JFrame.HIDE_ON_CLOSE);
         
         // Auto xPC Convert Drop Panel
         autoxPCConvertButton = new JButton(autoxPCIcon);
@@ -237,7 +237,7 @@ public class Selector extends JFrame implements ActionListener, Runnable {
         this.getContentPane().add(pausebitButton); 
         this.getContentPane().add(stopbitButton);   
         this.getContentPane().add(spyPanel);
-        this.getContentPane().add(iccButton);
+        //this.getContentPane().add(iccButton);
         this.getContentPane().add(autoxPCConvertButton);
         this.getContentPane().add(xpcConvertButton);
         this.getContentPane().add(csvDecimatorButton);

@@ -4,11 +4,14 @@ import java.io.File;
 import java.lang.InterruptedException;
 import java.text.SimpleDateFormat;
 import java.util.TimeZone;
-import edu.lehigh.nees.xml2.ReadRTMDXMLConfig;
-import edu.lehigh.nees.xml2.XMLRTMDConfig;
+
+import edu.lehigh.nees.xml.ReadxPCXMLConfig;
+import edu.lehigh.nees.xml.XMLxPCConfig;
 import edu.lehigh.nees.scramnet.ScramNetIO;
+
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.Options;
+
 import com.rbnb.sapi.ChannelMap;
 import com.rbnb.sapi.SAPIException;
 import com.rbnb.sapi.Source;
@@ -24,17 +27,15 @@ import com.rbnb.sapi.Source;
  * 16 Nov 06  T. Marullo  Initial 
  *  6 Apr 07  T. Marullo  Added units to channel names
  * 17 Aug 09  T. Marullo  Changed gain from int to float 
- * 19 Oct 10  T. Marullo  Using new xml2 services
  * 
  ********************************/
-public class SCRAMNetSource extends RBNBBase {
+public class SCRAMNetSourceOld extends RBNBBase {
 	
 	private final static String DEFAULT_XML_PATH = "turbine.xml";
 	private String xmlPath = DEFAULT_XML_PATH;
 	private final static String DEFAULT_RBNB_SOURCE = "RTMD";
 	private String rbnbSourceName = DEFAULT_RBNB_SOURCE;
 	private String[] rbnbChannelNames;
-	private int rbnbChannelIndex[];
 	
 	private static final int DEFAULT_CACHE_SIZE = 900;
 	private int cacheSize = DEFAULT_CACHE_SIZE;
@@ -49,17 +50,17 @@ public class SCRAMNetSource extends RBNBBase {
 	boolean runit = false;
 	private final static long RETRY_INTERVAL = 1000;
 	
-	XMLRTMDConfig xml = null;
+	XMLxPCConfig xml = null;
 		
 	/** Constructor that starts the thread **/
-	public SCRAMNetSource () {
+	public SCRAMNetSourceOld () {
        Runtime.getRuntime ().addShutdownHook (new Thread () {
           public void run () {
              try {
                 disconnect ();
-                System.out.println ("Shutdown hook for " + SCRAMNetSource.class.getName ());
+                System.out.println ("Shutdown hook for " + SCRAMNetSourceOld.class.getName ());
              } catch (Exception e) {
-                System.out.println ("Unexpected error closing " + SCRAMNetSource.class.getName ());
+                System.out.println ("Unexpected error closing " + SCRAMNetSourceOld.class.getName ());
              }
           } // run ()
        }); //?addHook
@@ -67,7 +68,7 @@ public class SCRAMNetSource extends RBNBBase {
 	
 	public static void main(String[] args) {
 		// start from command line
-		SCRAMNetSource s = new SCRAMNetSource();
+		SCRAMNetSourceOld s = new SCRAMNetSourceOld();
 		if (s.parseArgs(args))
 		{
 			s.connect();
@@ -185,32 +186,13 @@ public class SCRAMNetSource extends RBNBBase {
 	
 	/** Get all the SCRAMNet channels from the xPC formatted file */
 	protected boolean getSCRAMNetChannels() {
-		ReadRTMDXMLConfig xmlfile = new ReadRTMDXMLConfig(new File(xmlPath));
-		xml = xmlfile.getRTMDConfig();
+		ReadxPCXMLConfig xmlfile = new ReadxPCXMLConfig(new File(xmlPath));
+		xml = xmlfile.getxPCConfig();
 		
-		// Get the number of Channels and gather the indicies where stream is true
-		int rbnbNumChannels = 0;
-		for (int i = 0; i < xml.getNumChannels(); i++) {			
-			if (xml.getStream(i).equals("True")) {				
-				rbnbNumChannels++;				
-			}
-		}
-		
-		// Create the Channels
-		rbnbChannelIndex = new int[rbnbNumChannels];
-		rbnbChannelNames = new String[rbnbNumChannels];
-		int j = 0;
-		for (int i = 0; i < xml.getNumChannels(); i++)
-			if (xml.getStream(i).equals("True")) {				
-				rbnbChannelIndex[j] = i;				
-				rbnbChannelNames[j] = xml.getName(i).replace('/', '\\') + " (" + xml.getUnits(i).replace('/', '\\') + ")";
-				j++;
-			}		
-
-		// Get all the channels				
-		//rbnbChannelNames = new String[rbnbChannelIndex.length];
-		//for (int i = 0; i < rbnbChannelNames.length; i++)
-		//	rbnbChannelNames[i] = xml.getName(i) + " " + xml.getUnits(i);			
+		// Get the number of Channels
+		rbnbChannelNames = new String[xml.getnumxPCReadBlocks()];
+		for (int i = 0; i < rbnbChannelNames.length; i++)
+			rbnbChannelNames[i] = xml.getxPCReadName(i) + " " + xml.getxPCReadUnits(i);			
 				
 		return true;
 	}
@@ -311,19 +293,19 @@ public class SCRAMNetSource extends RBNBBase {
 			for (int i = 0; i < rbnbChannelNames.length; i++) {			
 				float scrdata[] = new float[1];
 				
-				if (xml.getisDAQ(rbnbChannelIndex[i]).equals("True")) {
+				if (xml.getxPCReadisDAQ(i).equals("true")) {
 					scrdata[0] = (float)scr.readDAQ(
-											xml.getLocation(rbnbChannelIndex[i]),
-											Double.parseDouble(xml.getGain(rbnbChannelIndex[i])),
-											Double.parseDouble(xml.getVoltageOffset(rbnbChannelIndex[i])),
-											Double.parseDouble(xml.getVoltageSlope(rbnbChannelIndex[i])),
-											Double.parseDouble(xml.getEUOffset(rbnbChannelIndex[i])),
-											Double.parseDouble(xml.getEUSlope(rbnbChannelIndex[i])));								
+										xml.getxPCReadLocation(i),
+										xml.getxPCReadGain(i),
+										xml.getxPCReadVoffset(i),
+										xml.getxPCReadVslope(i),
+										xml.getxPCReadEUoffset(i),
+										xml.getxPCReadEUslope(i));								
 				}
 				else {
 					scrdata[0] = scr.readFloat(
-										Integer.parseInt(xml.getLocation(rbnbChannelIndex[i])))*
-										Float.parseFloat(xml.getGain(rbnbChannelIndex[i]));				
+										Integer.parseInt(xml.getxPCReadLocation(i)))*
+										(float)xml.getxPCReadGain(i);				
 				}
 			
 				// Push data to turbine
