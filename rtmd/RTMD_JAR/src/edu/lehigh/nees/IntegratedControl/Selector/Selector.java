@@ -1,12 +1,14 @@
 package edu.lehigh.nees.IntegratedControl.Selector;
 
 import javax.swing.*;
+
 import java.io.*;
 import java.awt.*;
 import java.awt.event.*;
 import edu.lehigh.nees.scramnet.*;
 import edu.lehigh.nees.xml.*;
 import edu.lehigh.nees.util.*;
+
 import java.util.Date;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
@@ -22,6 +24,7 @@ import java.text.SimpleDateFormat;
  * <b><u>Revisions</u></b><br>
  * 16 Aug 05  T. Marullo  Initial
  * 22 Apr 09  T. Marullo  Rework
+ *  5 Nov 10  T. Marullo  Added Limits Generator and removed ICC 
  * 
  * TODO:
  * Rework ICC
@@ -41,7 +44,8 @@ public class Selector extends JFrame implements ActionListener, Runnable {
 	protected JButton simbitButton;
 	protected JButton pausebitButton;
 	protected JButton stopbitButton;
-	protected JButton iccButton;
+	//protected JButton iccButton;
+	protected JButton limitsButton;
 	protected JButton autoxPCConvertButton;
 	protected JButton xpcConvertButton;
 	protected JButton csvDecimatorButton;
@@ -58,7 +62,8 @@ public class Selector extends JFrame implements ActionListener, Runnable {
     protected ImageIcon pausebitOnIcon = new ImageIcon("/RTMD/res/pauseButtonOn.png");
     protected ImageIcon stopbitOffIcon = new ImageIcon("/RTMD/res/stopButtonOff.png");
     protected ImageIcon stopbitOnIcon = new ImageIcon("/RTMD/res/stopButtonOn.png");
-    protected ImageIcon iccIcon = new ImageIcon("/RTMD/res/icc.png");    
+    //protected ImageIcon iccIcon = new ImageIcon("/RTMD/res/icc.png");
+    protected ImageIcon limitsIcon = new ImageIcon("/RTMD/res/limits.png");  
     protected ImageIcon autoxPCIcon = new ImageIcon("/RTMD/res/autoxpc.png");
     protected ImageIcon xPCIcon = new ImageIcon("/RTMD/res/xpcconv.png");
     protected ImageIcon csvIcon = new ImageIcon("/RTMD/res/csv.png");
@@ -67,7 +72,7 @@ public class Selector extends JFrame implements ActionListener, Runnable {
     // Ramp to Zero Frame
     protected CommandZero commandZeroFrame;
     // Integrated Control Configurator Frame
-    protected XMLGenerator iccFrame = new XMLGenerator();
+    //protected XMLGenerator iccFrame = new XMLGenerator();
     // Threads for tasks
     protected Thread updateThread;    
     private Thread actionThread;    
@@ -147,6 +152,14 @@ public class Selector extends JFrame implements ActionListener, Runnable {
         // iccButton.setFocusPainted(false);
         // iccButton.addActionListener(this);
         // iccFrame.setDefaultCloseOperation(JFrame.HIDE_ON_CLOSE);
+        
+        // Limits Configurations
+        limitsButton = new JButton(limitsIcon);
+        limitsButton.setToolTipText("RTMD Limits Configurator");
+        limitsButton.setBorder(null);
+        limitsButton.setContentAreaFilled(false);
+        limitsButton.setFocusPainted(false);
+        limitsButton.addActionListener(this);        
         
         // Auto xPC Convert Drop Panel
         autoxPCConvertButton = new JButton(autoxPCIcon);
@@ -238,6 +251,7 @@ public class Selector extends JFrame implements ActionListener, Runnable {
         this.getContentPane().add(stopbitButton);   
         this.getContentPane().add(spyPanel);
         //this.getContentPane().add(iccButton);
+        this.getContentPane().add(limitsButton);
         this.getContentPane().add(autoxPCConvertButton);
         this.getContentPane().add(xpcConvertButton);
         this.getContentPane().add(csvDecimatorButton);
@@ -333,13 +347,31 @@ public class Selector extends JFrame implements ActionListener, Runnable {
     		}    		
     	}   
     	// ICC Button
-    	else if (source == iccButton) {
-    		if (iccFrame.isVisible())
-    			iccFrame.setVisible(false);
-    		else
-    			iccFrame.setVisible(true);
-    	}  
+//    	else if (source == iccButton) {
+//    		if (iccFrame.isVisible())
+//    			iccFrame.setVisible(false);
+//    		else
+//    			iccFrame.setVisible(true);
+//    	}  
     	
+    	// Limits Button
+    	else if (source == limitsButton) {    		
+    		// Create new Limits Generator Panel
+            LimitsGenerator lg = new LimitsGenerator();
+            lg.setBounds(0,0,600,(int)(520*(1-0.65)));                       
+            
+            // Set up Frame container
+            JFrame f = new JFrame("RTMD Limits Configurator");        
+            f.setResizable(false);
+            f.getContentPane().setLayout(null);        
+            f.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);        
+            f.setJMenuBar(lg.generateMenuBar());
+            f.add(lg);
+            f.add(lg.getUIPanel());
+            f.setSize(600,520);        
+            f.setLocationRelativeTo(null);        
+            f.setVisible(true);
+    	}
     	// Auto xPC Button
     	else if (source == autoxPCConvertButton) {
     		javax.swing.JOptionPane.showMessageDialog(null, "Drag an xPC XML file here to convert the Binary data into Text");    		    		  		    		    				    		   
