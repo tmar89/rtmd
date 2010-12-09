@@ -25,6 +25,7 @@ import com.rbnb.sapi.Source;
  *  6 Apr 07  T. Marullo  Added units to channel names
  * 17 Aug 09  T. Marullo  Changed gain from int to float 
  * 19 Oct 10  T. Marullo  Using new xml2 services
+ *  5 Dec 10  T. Marullo  Running 10 channel map pushes for every 1 frame push to improve performance
  * 
  ********************************/
 public class SCRAMNetSource extends RBNBBase {
@@ -40,8 +41,10 @@ public class SCRAMNetSource extends RBNBBase {
 	private int cacheSize = DEFAULT_CACHE_SIZE;
 	private static final int DEFAULT_ARCHIVE_SIZE = 0;
 	private int archiveSize = DEFAULT_ARCHIVE_SIZE;
-	private static final int DEFAULT_DELAY = 100; // Default to 100 ms between flushes 
+	private static final int DEFAULT_DELAY = 100; // Default to 100 ms between flushes 	
 	private int delay = DEFAULT_DELAY; 
+	private static final int DEFAULT_PUSHES = 10; // Default to 10 pushes per flush
+	private int pushes = DEFAULT_PUSHES;
 	
 	Source source = null;
 	boolean connected = false;
@@ -97,7 +100,8 @@ public class SCRAMNetSource extends RBNBBase {
 				+ "\n RBNB Source name = " + rbnbSourceName				
 				+ "\n Number of channels = " + rbnbChannelNames.length
 				+ "\n Delay between frames = " + ((float)delay/1000F) + "s"
-				+ "\n RBNB Frame Size = " + (rbnbChannelNames.length * 4 * 1000/delay) + " bytes");
+				+ "\n Effective sampling rate = " + (1/((float)delay/(1000F * pushes))) + "Hz"
+				+ "\n RBNB Frame Size = " + (rbnbChannelNames.length * 4 * pushes * 1000/delay) + " bytes");
 		} catch (SAPIException se) { se.printStackTrace(); }
 	}
 	
@@ -119,7 +123,8 @@ public class SCRAMNetSource extends RBNBBase {
 		opt.addOption("S",true,"Source name *" + DEFAULT_RBNB_SOURCE);
 		opt.addOption("z",true,"cache size *" + DEFAULT_CACHE_SIZE);
 		opt.addOption("Z",true,"archive size *" + DEFAULT_ARCHIVE_SIZE);
-		opt.addOption("p",true,"delay *" + DEFAULT_DELAY);
+		opt.addOption("f",true,"delay *" + DEFAULT_DELAY);
+		opt.addOption("p",true,"delay *" + DEFAULT_PUSHES);
 		return opt;
 	}
 	
@@ -133,13 +138,23 @@ public class SCRAMNetSource extends RBNBBase {
 			String a=cmd.getOptionValue('S');
 			if (a!=null) rbnbSourceName=a;
 		}
+		if (cmd.hasOption('f')) {
+			String a=cmd.getOptionValue('f');
+			try
+			{
+				Integer i =  new Integer(a);
+				int value = i.intValue();
+				delay = value;
+			}
+			catch (Exception ignore) {} 
+		}
 		if (cmd.hasOption('p')) {
 			String a=cmd.getOptionValue('p');
 			try
 			{
 				Integer i =  new Integer(a);
 				int value = i.intValue();
-				delay = value;
+				pushes = value;
 			}
 			catch (Exception ignore) {} 
 		}
@@ -307,37 +322,44 @@ public class SCRAMNetSource extends RBNBBase {
 		
 
 		while(true) {			
-			// Read SCRAMNet channel depending on if its DAQ or other
-			for (int i = 0; i < rbnbChannelNames.length; i++) {			
-				float scrdata[] = new float[1];
+			for (int k = 0; k < pushes; k++) {
+				// Read SCRAMNet channel depending on if its DAQ or other
+				for (int i = 0; i < rbnbChannelNames.length; i++) {			
+					float scrdata[] = new float[1];
+					
+					if (xml.getisDAQ(rbnbChannelIndex[i]).equals("True")) {
+						scrdata[0] = (float)scr.readDAQ(
+												xml.getLocation(rbnbChannelIndex[i]),
+												Double.parseDouble(xml.getGain(rbnbChannelIndex[i])),
+												Double.parseDouble(xml.getVoltageOffset(rbnbChannelIndex[i])),
+												Double.parseDouble(xml.getVoltageSlope(rbnbChannelIndex[i])),
+												Double.parseDouble(xml.getEUOffset(rbnbChannelIndex[i])),
+												Double.parseDouble(xml.getEUSlope(rbnbChannelIndex[i])));								
+					}
+					else {
+						scrdata[0] = scr.readFloat(
+											Integer.parseInt(xml.getLocation(rbnbChannelIndex[i])))*
+											Float.parseFloat(xml.getGain(rbnbChannelIndex[i]));				
+					}
 				
-				if (xml.getisDAQ(rbnbChannelIndex[i]).equals("True")) {
-					scrdata[0] = (float)scr.readDAQ(
-											xml.getLocation(rbnbChannelIndex[i]),
-											Double.parseDouble(xml.getGain(rbnbChannelIndex[i])),
-											Double.parseDouble(xml.getVoltageOffset(rbnbChannelIndex[i])),
-											Double.parseDouble(xml.getVoltageSlope(rbnbChannelIndex[i])),
-											Double.parseDouble(xml.getEUOffset(rbnbChannelIndex[i])),
-											Double.parseDouble(xml.getEUSlope(rbnbChannelIndex[i])));								
+					// Push data to turbine
+					try {										
+						cmap.PutTimeAuto("timeofday");		
+						cmap.PutDataAsFloat32(channelId[i], scrdata);					
+					} catch (SAPIException e) {					
+						System.err.println("Failed to put SCRAMNet data into channel map.");
+						scr.unmapScramnet();				
+						return false;
+					}
 				}
-				else {
-					scrdata[0] = scr.readFloat(
-										Integer.parseInt(xml.getLocation(rbnbChannelIndex[i])))*
-										Float.parseFloat(xml.getGain(rbnbChannelIndex[i]));				
-				}
-			
-				// Push data to turbine
-				try {										
-					cmap.PutTimeAuto("timeofday");		
-					cmap.PutDataAsFloat32(channelId[i], scrdata);					
-				} catch (SAPIException e) {					
-					System.err.println("Failed to put SCRAMNet data into channel map.");
-					scr.unmapScramnet();				
-					return false;
-				}
+				
+				try {
+					// Delay between each data load
+					Thread.sleep(delay/pushes);
+				} catch (InterruptedException e) {	}
 			}
 			
-			// Flush output
+			// Flush output after every 5 loads
 			try {				
 				source.Flush(cmap, true);					
 			} catch (SAPIException e) {			  
@@ -348,11 +370,11 @@ public class SCRAMNetSource extends RBNBBase {
 			}
 		
 					
-			try {
-				// Delay between
-				Thread.sleep(delay);
-			} catch (InterruptedException e) {	
-			}
+			//try {
+			//	// Delay between
+			//	Thread.sleep(delay);
+			//} catch (InterruptedException e) {	
+			//}
 		}							
 	}
 	
