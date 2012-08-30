@@ -1,12 +1,18 @@
 package edu.lehigh.nees.util;
 
+
 import java.applet.*;
 import java.awt.*;
 import java.awt.event.*;
+import java.io.BufferedWriter;
+import java.io.FileWriter;
+import java.util.ArrayList;
+import javax.swing.*;
+import javax.swing.filechooser.FileNameExtensionFilter;
 
 public class EQGenerator extends Applet implements Runnable {
 
-	private static final long serialVersionUID = -36702952807440169L;
+   private static final long serialVersionUID = -36702952807440169L;
    int width, height;
    int x, y;    // the coordinates of the upper-left corner of the box
    int mx, my;  // the most recently recorded mouse coordinates
@@ -17,6 +23,7 @@ public class EQGenerator extends Applet implements Runnable {
    private int xval;
    private int yval;
    private int yval_old;
+   private ArrayList eq = new ArrayList();
 
    boolean stop;
    
@@ -43,6 +50,7 @@ public class EQGenerator extends Applet implements Runnable {
       this.add(dbp);      
       
       stop = false;
+      this.setSize(550,300);
       
    }
    
@@ -53,6 +61,7 @@ public class EQGenerator extends Applet implements Runnable {
    
    public void update( Graphics g ) {	 	   
 	   System.out.println(yval);
+	   eq.add(yval);
 	  backg.drawLine(xval,yval_old+15,++xval,yval+15);
 	  yval_old = yval;
 	  //System.out.println("x=" + xval);
@@ -77,8 +86,26 @@ public class EQGenerator extends Applet implements Runnable {
 				Thread.sleep(20);						
 			} catch (Exception e) {e.printStackTrace();}
 		}
-	}
-   
+		System.out.println("Size: " + eq.size());
+		
+		try{
+			JFileChooser chooser = new JFileChooser();
+		    FileNameExtensionFilter filter = new FileNameExtensionFilter(
+		        "TXT files", "txt");
+		    chooser.setFileFilter(filter);
+		    int returnVal = chooser.showOpenDialog(this);	    
+	        // Create file 
+	        FileWriter fstream = new FileWriter(chooser.getSelectedFile());
+	            BufferedWriter out = new BufferedWriter(fstream);	            
+	        for (int i = 0; i < eq.size(); i++)
+	        	out.write((float)i/10 + "," + (Float.parseFloat((eq.get(i).toString()))-135)/100*-18 + "\n");	            
+	        //Close the output stream
+	        out.close();	
+	        this.stop();
+        }catch (Exception e){//Catch exception if any
+	          System.err.println("Error: " + e.getMessage());
+        }      
+	}       
  }
 
 class DragPanel extends Panel implements MouseListener, MouseMotionListener {

@@ -189,9 +189,9 @@ public class Selector extends JFrame implements ActionListener, Runnable {
         				if (ret) {
     						// Convert CSV file to DAP file        					
     						String csvfilename = new String(curpath + "\\results_"+now+".csv");
-    						String txtfilename = new String(curpath + "\\results_"+now+".txt");			
+    						String sdapfilename = new String(curpath + "\\results_"+now+".sdap");			
     						DAPCSVConverter csvtodap = new DAPCSVConverter(false);
-    			        	csvtodap.convertCSVtoDAP(csvfilename, txtfilename, 1024);
+    			        	csvtodap.convertCSVtoDAP(csvfilename, sdapfilename, 1024);
     			        	JOptionPane.showMessageDialog(null,"Conversion Complete");
         				}
     				}    			

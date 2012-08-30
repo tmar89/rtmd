@@ -33,7 +33,7 @@ public class DAPCSVConverter {
 		    	
 		    	// Get the output file name
 		    	String outputFileName;
-		        if ((outputFileName = FileHandler.getFilePath("Open DAP .txt File", new TXTFileFilter())) == null)
+		        if ((outputFileName = FileHandler.getFilePath("Open DAP .sdap File", new SDAPFileFilter())) == null)
 		        	return;
 		        
 		        int freq = Integer.parseInt(JOptionPane.showInputDialog(null,"What is the frequency of the CSV file data (Hz)?","DAPCSVConverter",JOptionPane.OK_OPTION));
@@ -43,7 +43,7 @@ public class DAPCSVConverter {
 	    	else if (selection == 2) {    	
 		    	// Get the input file name    
 	    		String inputFileName;
-		        if ((inputFileName = FileHandler.getFilePath("Open DAP .txt File", new TXTFileFilter())) == null)
+		        if ((inputFileName = FileHandler.getFilePath("Open DAP .sdap File", new SDAPFileFilter())) == null)
 		        	return;
 		    	
 		    	// Get the output file name

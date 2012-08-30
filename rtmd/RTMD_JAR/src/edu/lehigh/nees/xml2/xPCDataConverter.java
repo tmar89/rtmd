@@ -16,6 +16,7 @@ import edu.lehigh.nees.util.filefilter.*;
  * <p>
  * <b><u>Revisions</u></b><br>
  * 19 Oct 10  T. Marullo  Rework from original
+ * 30 Aug 12  T. Marullo  Moved Time to first column
  * 
  ********************************/
 public class xPCDataConverter {
@@ -24,7 +25,8 @@ public class xPCDataConverter {
 	private DataInputStream data;
 	private PrintStream out = null;
 	private String outfile;
-	private String xmlfile;		
+	private String xmlfile;
+	private String xpcfile;
 	private boolean isDone;		
 	
 	
@@ -33,9 +35,10 @@ public class xPCDataConverter {
 	 * @param xmlfile_ xPC XML File
 	 * @param outfile_ CSV Output file
 	 */
-	public xPCDataConverter(String xmlfile_, String outfile_) {							
+	public xPCDataConverter(String xmlfile_, String outfile_, String xpcfile_) {							
 		xmlfile = xmlfile_;
 		outfile = outfile_;
+		xpcfile = xpcfile_;
 		
 		// Open the Data file
 		openDataFile(true);
@@ -63,7 +66,7 @@ public class xPCDataConverter {
 		// Open the Data File and get header information
 		try {      
 			if (isDataFileLocal)
-				data = new DataInputStream(new BufferedInputStream(new FileInputStream(xmlfile.replace("xpc.xml", "XPC1.DAT"))));
+				data = new DataInputStream(new BufferedInputStream(new FileInputStream(xmlfile.replace(xmlfile, xpcfile))));
 			else
 				data = new DataInputStream(new BufferedInputStream(new FileInputStream(FileHandler.getFilePath("Open xPC Data File"))));
 			if (data == null)
@@ -97,11 +100,13 @@ public class xPCDataConverter {
 		} catch (Exception e) {e.printStackTrace(); return false;}
 		
 		// Write Header
-		String s = "";
+		//String s = "";
+		String s = "Time,";
 		for (int i = 0; i < xml.getNumChannels(); i++) {
 			s = s + xml.getName(i) + " (" + xml.getUnits(i) + "),";
 		}
-		out.println(s + "Time");				
+		//out.println(s + "Time (s)");				
+		out.println(s);
 		
 		// Get xPC Data
 		// Go through all xPC Read Blocks and get data from files			
@@ -122,10 +127,15 @@ public class xPCDataConverter {
 				}
 			}			
 			
-			// Get the time
+			// Get the time and swap to first column
 			// Skip the last line because it's garbage numbers
-			if (isDone != true)
-				out.println(s + getData(data));						
+			if (isDone != true) {
+				// Remove last ,
+				s = s.substring(0,s.length()-1);
+				s = getData(data) + "," + s;
+				out.println(s);
+				//out.println(s + getData(data));
+			}										
 		}	
 		
 		// Close files

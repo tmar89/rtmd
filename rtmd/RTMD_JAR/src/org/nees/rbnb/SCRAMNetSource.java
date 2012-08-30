@@ -26,7 +26,7 @@ import com.rbnb.sapi.Source;
  * 17 Aug 09  T. Marullo  Changed gain from int to float 
  * 19 Oct 10  T. Marullo  Using new xml2 services
  *  5 Dec 10  T. Marullo  Running 10 channel map pushes for every 1 frame push to improve performance
- * 
+ * 15 Mar 11  T. Marullo  Updated metadata stuff 
  ********************************/
 public class SCRAMNetSource extends RBNBBase {
 	
@@ -41,9 +41,9 @@ public class SCRAMNetSource extends RBNBBase {
 	private int cacheSize = DEFAULT_CACHE_SIZE;
 	private static final int DEFAULT_ARCHIVE_SIZE = 0;
 	private int archiveSize = DEFAULT_ARCHIVE_SIZE;
-	private static final int DEFAULT_DELAY = 100; // Default to 100 ms between flushes 	
+	private static final int DEFAULT_DELAY = 500; // Default to 500 ms between flushes 	
 	private int delay = DEFAULT_DELAY; 
-	private static final int DEFAULT_PUSHES = 10; // Default to 10 pushes per flush
+	private static final int DEFAULT_PUSHES = 5; // Default to 5 pushes per flush
 	private int pushes = DEFAULT_PUSHES;
 	
 	Source source = null;
@@ -95,13 +95,16 @@ public class SCRAMNetSource extends RBNBBase {
 			connected = true;
 			System.out.println("Connecting to SCRAMNetSource with..."			
 				+ "\n RBNB Server = " + getServer()
-				+ "\n RBNB Cache Size = " + cacheSize
-				+ "\n RBNB Archive Size = " + archiveSize
 				+ "\n RBNB Source name = " + rbnbSourceName				
-				+ "\n Number of channels = " + rbnbChannelNames.length
-				+ "\n Delay between frames = " + ((float)delay/1000F) + "s"
-				+ "\n Effective sampling rate = " + (1/((float)delay/(1000F * pushes))) + "Hz"
-				+ "\n RBNB Frame Size = " + (rbnbChannelNames.length * 4 * pushes * 1000/delay) + " bytes");
+				+ "\n RBNB Number of channels = " + rbnbChannelNames.length
+				+ "\n RBNB Frame Size = " + (rbnbChannelNames.length * 4 * pushes) + " Bytes"				
+				+ "\n RBNB Sample rate = " + (1/((float)delay/(1000F * pushes))) + "Hz"
+				+ "\n RBNB Flush rate = " + (1/((float)delay/1000F)) + "Hz"
+				+ "\n RBNB Cache Size = " + cacheSize + " Frames (" + cacheSize*(rbnbChannelNames.length * 4 * pushes)/1000 + " KB)"			
+				+ "\n RBNB Archive Size = " + archiveSize + " Frames (" + archiveSize*(rbnbChannelNames.length * 4 * pushes)/1000 + " KB)"
+				+ "\n RBNB Cache Time = " + cacheSize/(1/((float)delay/1000F))/60 + " minutes"
+				+ "\n RBNB Archive Time = " + archiveSize/(1/((float)delay/1000F))/60 + " minutes"
+			);
 		} catch (SAPIException se) { se.printStackTrace(); }
 	}
 	

@@ -73,8 +73,8 @@ public class CommandZero extends JDialog implements ActionListener, Runnable {
 	    this.setTitle("SCRAMNet Command Zero");
         this.setLocationRelativeTo(null);
         this.getContentPane().setLayout(null);
-        this.setResizable(false);     
-        this.setAlwaysOnTop(true);
+        this.setResizable(false);             
+        this.setAlwaysOnTop(false);
         this.setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);             
         // Set up UI Look and Feel
         try {                        
